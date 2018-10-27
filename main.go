@@ -12,7 +12,7 @@ import (
 )
 
 type options struct {
-	TableName string `short:"t" long:"table-name" description:"Name of the dynamo db table" required:"true"`
+	TableName       string `short:"t" long:"table-name" description:"Name of the dynamo db table" required:"true"`
 	FieldsWithTypes string `short:"f" long:"fields-with-type" description:"List of comma separated fieldName.DynamoDBType to be output to CSV [Example \"timestamp.S,count.N\"] [nested structures will not be flattened]" required:"true"`
 }
 
@@ -34,7 +34,7 @@ func main() {
 	doSubSequentScan(result, opts, err, dynamoDB, fieldsWithType)
 }
 
-func doFirstScan(opts options, err error, dynamoDB *dynamodb.DynamoDB, fieldsWithType []string) (*dynamodb.ScanOutput) {
+func doFirstScan(opts options, err error, dynamoDB *dynamodb.DynamoDB, fieldsWithType []string) *dynamodb.ScanOutput {
 	params := &dynamodb.ScanInput{
 		TableName: aws.String(opts.TableName),
 	}
