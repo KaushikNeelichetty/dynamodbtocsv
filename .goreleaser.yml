@@ -7,7 +7,7 @@ release:
 
 before:
   hooks:
-  - GO111MODULE=on go mod download
+  - go mod download
 
 builds:
 - main: ./main.go
