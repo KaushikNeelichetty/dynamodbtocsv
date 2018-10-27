@@ -62,6 +62,7 @@ Help Options:
   -h, --help              Show this help message
   
 ```
+Supported DynamoDB Types are S , N , B and BOOL (PRs are always welcome for the rest :smile: )
 
 ## Maintainers
 
