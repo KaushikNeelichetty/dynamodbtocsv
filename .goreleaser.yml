@@ -5,6 +5,10 @@ release:
     owner: KaushikNeelichetty
     name: dynamodbtocsv
 
+before:
+  hooks:
+  - go mod download
+
 builds:
 - main: ./main.go
   binary: dynamodbtocsv
