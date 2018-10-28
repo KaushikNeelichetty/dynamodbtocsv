@@ -20,7 +20,7 @@ Dump your DynamoDB table as CSV
 ## Install
 
 ```
-# binary will be $GOPATH/bin/golangci-lint
+# binary will be $GOPATH/bin/dynamodbtocsv
 curl -sfL https://raw.githubusercontent.com/KaushikNeelichetty/dynamodbtocsv/master/install.sh | sh -s -- -b $GOPATH/bin
 
 # or install it into ./bin/
