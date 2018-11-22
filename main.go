@@ -5,15 +5,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/jessevdk/go-flags"
 	"os"
-	"strconv"
 	"strings"
 )
 
 type options struct {
-	TableName       string `short:"t" long:"table-name" description:"Name of the dynamo db table" required:"true"`
-	FieldsWithTypes string `short:"f" long:"fields-with-type" description:"List of comma separated fieldName.DynamoDBType to be output to CSV [Example \"timestamp.S,count.N\"] [nested structures will not be flattened]" required:"true"`
+	TableName string `short:"t" long:"table-name" description:"Name of the dynamo db table" required:"true"`
+	Fields    string `short:"f" long:"field-name" description:"List of comma separated fieldName to be output to CSV [Example \"timestamp,count\"] [nested structures will not be flattened]" required:"true"`
 }
 
 func main() {
@@ -24,17 +24,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	fieldsWithType := strings.Split(opts.FieldsWithTypes, ",")
-	printHeaders(fieldsWithType)
+	fieldNames := strings.Split(opts.Fields, ",")
+	printHeaders(fieldNames)
 
 	dynamoDB := getDynamoDbSession()
 
-	result := doFirstScan(opts, err, dynamoDB, fieldsWithType)
+	result := doFirstScan(opts, err, dynamoDB, fieldNames)
 
-	doSubSequentScan(result, opts, err, dynamoDB, fieldsWithType)
+	doSubSequentScan(result, opts, err, dynamoDB, fieldNames)
 }
 
-func doFirstScan(opts options, err error, dynamoDB *dynamodb.DynamoDB, fieldsWithType []string) *dynamodb.ScanOutput {
+func doFirstScan(opts options, err error, dynamoDB *dynamodb.DynamoDB, fields []string) *dynamodb.ScanOutput {
 	params := &dynamodb.ScanInput{
 		TableName: aws.String(opts.TableName),
 	}
@@ -45,7 +45,7 @@ func doFirstScan(opts options, err error, dynamoDB *dynamodb.DynamoDB, fieldsWit
 		os.Exit(1)
 	}
 	items := result.Items
-	printValues(items, fieldsWithType)
+	printValues(items, fields)
 	return result
 }
 
@@ -75,49 +75,30 @@ func getDynamoDbSession() *dynamodb.DynamoDB {
 	return dynamoDB
 }
 
-func printHeaders(fieldsWithType []string) {
-	header := ""
-	for _, fieldWithType := range fieldsWithType {
-		field := strings.Split(fieldWithType, ".")[0]
-		header = header + field + ","
-	}
-	fmt.Println(strings.TrimSuffix(header, ","))
+func printHeaders(fields []string) {
+	fmt.Println(strings.Join(fields, ","))
 }
 
-func printValues(items []map[string]*dynamodb.AttributeValue, fieldsWithType []string) {
+func getActualValue(iVal interface{}) string {
+	if val := fmt.Sprintf("%v", iVal); val != "<nil>" {
+		return val
+	} else {
+		return ""
+	}
+}
+
+func printValues(items []map[string]*dynamodb.AttributeValue, fields []string) {
 	for _, item := range items {
-		outputString := ""
-		for _, fieldWithType := range fieldsWithType {
-			field := strings.Split(fieldWithType, ".")[0]
-			dynamoDbType := strings.Split(fieldWithType, ".")[1]
-			if fieldValue, ok := item[field]; ok {
-				if dynamoDbType == "S" {
-					if fieldValue.S != nil {
-						outputString = outputString + *fieldValue.S + ","
-					} else {
-						outputString = outputString + "" + ","
-					}
-				} else if dynamoDbType == "N" {
-					if fieldValue.N != nil {
-						outputString = outputString + *fieldValue.N + ","
-					} else {
-						outputString = outputString + "" + ","
-					}
-				} else if dynamoDbType == "B" {
-					if fieldValue.B != nil {
-						outputString = outputString + string(fieldValue.B) + ","
-					} else {
-						outputString = outputString + "" + ","
-					}
-				} else if dynamoDbType == "BOOL" {
-					if fieldValue.BOOL != nil {
-						outputString = outputString + strconv.FormatBool(*fieldValue.BOOL) + ","
-					} else {
-						outputString = outputString + "" + ","
-					}
-				}
-			}
+		valMap := map[string]interface{}{}
+		err := dynamodbattribute.UnmarshalMap(item, &valMap)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
 		}
-		fmt.Println(strings.TrimSuffix(outputString, ","))
+		outputString := make([]string, len(fields))
+		for index, field := range fields {
+			outputString[index] = getActualValue(valMap[field])
+		}
+		fmt.Println(strings.Join(outputString, ","))
 	}
 }

@@ -33,7 +33,7 @@ wget -O - -q https://raw.githubusercontent.com/KaushikNeelichetty/dynamodbtocsv/
 ## Example 
 
 ```bash
-$ AWS_REGION=ap-southeast-1 ./dynamodbtocsv -t timesheet-cop -f timestamp.S,count.N > dump.csv
+$ AWS_REGION=ap-southeast-1 ./dynamodbtocsv -t timesheet-cop -f timestamp,count > dump.csv
 $ head dump.csv
 timestamp,count
 2018-09-05 09:41:20,3
@@ -57,13 +57,12 @@ Usage:
 
 Application Options:
   -t, --table-name=       Name of the dynamo db table
-  -f, --fields-with-type= List of comma separated fieldName.DynamoDBType to be output to CSV [Example "timestamp.S,count.N"] [nested structures will not be flattened]
+  -f, --fields-name=      List of comma separated fieldName to be output to CSV [Example "timestamp,count"] [nested structures will not be flattened]
 
 Help Options:
   -h, --help              Show this help message
   
 ```
-Supported DynamoDB Types are S , N , B and BOOL (PRs are always welcome for the rest :smile: )
 
 ## Maintainers
 
