@@ -92,13 +92,29 @@ func printValues(items []map[string]*dynamodb.AttributeValue, fieldsWithType []s
 			dynamoDbType := strings.Split(fieldWithType, ".")[1]
 			if fieldValue, ok := item[field]; ok {
 				if dynamoDbType == "S" {
-					outputString = outputString + *fieldValue.S + ","
+					if fieldValue.S != nil {
+						outputString = outputString + *fieldValue.S + ","
+					} else {
+						outputString = outputString + "" + ","
+					}
 				} else if dynamoDbType == "N" {
-					outputString = outputString + *fieldValue.N + ","
+					if fieldValue.N != nil {
+						outputString = outputString + *fieldValue.N + ","
+					} else {
+						outputString = outputString + "" + ","
+					}
 				} else if dynamoDbType == "B" {
-					outputString = outputString + string(fieldValue.B) + ","
+					if fieldValue.B != nil {
+						outputString = outputString + string(fieldValue.B) + ","
+					} else {
+						outputString = outputString + "" + ","
+					}
 				} else if dynamoDbType == "BOOL" {
-					outputString = outputString + strconv.FormatBool(*fieldValue.BOOL) + ","
+					if fieldValue.BOOL != nil {
+						outputString = outputString + strconv.FormatBool(*fieldValue.BOOL) + ","
+					} else {
+						outputString = outputString + "" + ","
+					}
 				}
 			}
 		}
