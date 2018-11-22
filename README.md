@@ -46,6 +46,7 @@ timestamp,count
 2018-10-12 04:11:21,4
 2018-09-18 20:41:21,11
 ```
+To load the shared config, `export AWS_SDK_LOAD_CONFIG="true"` before running the above command. This is useful to load the shared credentials file from ~/.aws/credentials.
 
 ## Usage
 
