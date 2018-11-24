@@ -19,14 +19,14 @@ Dump your DynamoDB table as CSV
 
 ## Install
 
-#### Homebrew
+### Homebrew
 
 ```
 brew tap KaushikNeelichetty/homebrew-tap
 brew install dynamodbtocsv
 ```
 
-#### Direct Binary Download
+### Direct Binary Download
 
 ```
 # binary will be $GOPATH/bin/dynamodbtocsv
