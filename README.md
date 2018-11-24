@@ -19,6 +19,15 @@ Dump your DynamoDB table as CSV
 
 ## Install
 
+#### Homebrew
+
+```
+brew tap KaushikNeelichetty/homebrew-tap
+brew install dynamodbtocsv
+```
+
+#### Direct Binary Download
+
 ```
 # binary will be $GOPATH/bin/dynamodbtocsv
 curl -sfL https://raw.githubusercontent.com/KaushikNeelichetty/dynamodbtocsv/master/install.sh | sh -s -- -b $GOPATH/bin
@@ -28,11 +37,6 @@ curl -sfL https://raw.githubusercontent.com/KaushikNeelichetty/dynamodbtocsv/mas
 
 # In alpine linux (as it does not come with curl by default)
 wget -O - -q https://raw.githubusercontent.com/KaushikNeelichetty/dynamodbtocsv/master/install.sh | sh -s
-
-# Homebrew
-brew tap KaushikNeelichetty/homebrew-tap
-brew install dynamodbtocsv
-
 ```
 
 ## Example 
