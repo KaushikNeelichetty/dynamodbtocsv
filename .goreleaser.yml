@@ -19,3 +19,12 @@ builds:
   goarch:
   - amd64
   - 386
+brew:
+  name: dynamodbtocsv
+  github:
+    owner: KaushikNeelichetty
+    name: homebrew-tap
+  url_template: "https://github.com/KaushikNeelichetty/dynamodbtocsv/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+  folder: Formula
+  homepage: "https://kaushikneelichetty.github.io/"
+  description: "Dump your DynamoDB table as CSV"
