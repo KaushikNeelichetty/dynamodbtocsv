@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"encoding/csv"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/jessevdk/go-flags"
+	"log"
 	"os"
 	"strings"
 )
@@ -19,64 +22,47 @@ type options struct {
 func main() {
 	opts := options{}
 	_, err := flags.Parse(&opts)
-
 	if err != nil {
 		os.Exit(0)
 	}
-
+	writer := csv.NewWriter(bufio.NewWriter(os.Stdout))
+	defer writer.Flush()
 	fieldNames := strings.Split(opts.Fields, ",")
-	printHeaders(fieldNames)
-
+	writer.Write(fieldNames)
 	dynamoDB := getDynamoDbSession()
-
-	result := doFirstScan(opts, err, dynamoDB, fieldNames)
-
-	doSubSequentScan(result, opts, err, dynamoDB, fieldNames)
+	result := doFirstScan(opts, err, dynamoDB, fieldNames, writer)
+	doSubSequentScan(result, opts, err, dynamoDB, fieldNames, writer)
 }
 
-func doFirstScan(opts options, err error, dynamoDB *dynamodb.DynamoDB, fields []string) *dynamodb.ScanOutput {
+func doFirstScan(opts options, err error, dynamoDB *dynamodb.DynamoDB, fields []string, writer *csv.Writer) *dynamodb.ScanOutput {
 	params := &dynamodb.ScanInput{
 		TableName: aws.String(opts.TableName),
 	}
 	result, err := dynamoDB.Scan(params)
-	if err != nil {
-		fmt.Println("Query API call failed:")
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	checkError("Query API call failed", err)
 	items := result.Items
-	printValues(items, fields)
+	printValues(items, fields, writer)
 	return result
 }
 
-func doSubSequentScan(result *dynamodb.ScanOutput, opts options, err error, dynamoDB *dynamodb.DynamoDB, fieldsWithType []string) {
+func doSubSequentScan(result *dynamodb.ScanOutput, opts options, err error, dynamoDB *dynamodb.DynamoDB, fieldsWithType []string, writer *csv.Writer) {
 	for result.LastEvaluatedKey != nil {
 		params := &dynamodb.ScanInput{
 			TableName:         aws.String(opts.TableName),
 			ExclusiveStartKey: result.LastEvaluatedKey,
 		}
 		result, err = dynamoDB.Scan(params)
-		if err != nil {
-			fmt.Println("Query API call failed:")
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
+		checkError("Query API call failed", err)
 		items := result.Items
-		printValues(items, fieldsWithType)
+		printValues(items, fieldsWithType, writer)
 	}
 }
 
 func getDynamoDbSession() *dynamodb.DynamoDB {
 	sess, err := session.NewSession()
-	if err != nil {
-		panic(err)
-	}
+	checkError("Unable to get dynamodb session", err)
 	dynamoDB := dynamodb.New(sess)
 	return dynamoDB
-}
-
-func printHeaders(fields []string) {
-	fmt.Println(strings.Join(fields, ","))
 }
 
 func getActualValue(iVal interface{}) string {
@@ -87,18 +73,21 @@ func getActualValue(iVal interface{}) string {
 	}
 }
 
-func printValues(items []map[string]*dynamodb.AttributeValue, fields []string) {
+func printValues(items []map[string]*dynamodb.AttributeValue, fields []string, writer *csv.Writer) {
 	for _, item := range items {
 		valMap := map[string]interface{}{}
 		err := dynamodbattribute.UnmarshalMap(item, &valMap)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		outputString := make([]string, len(fields))
+		checkError("unable to parse dynamodb output", err)
+		csvRow := make([]string, len(fields))
 		for index, field := range fields {
-			outputString[index] = getActualValue(valMap[field])
+			csvRow[index] = getActualValue(valMap[field])
 		}
-		fmt.Println(strings.Join(outputString, ","))
+		writer.Write(csvRow)
+	}
+}
+
+func checkError(message string, err error) {
+	if err != nil {
+		log.Fatal(message, err.Error())
 	}
 }
